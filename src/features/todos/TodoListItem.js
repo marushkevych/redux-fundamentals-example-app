@@ -5,6 +5,7 @@ import { ReactComponent as TimesSolid } from './times-solid.svg'
 import { availableColors, capitalize } from '../filters/colors'
 
 const TodoListItem = ({ todo, onColorChange, onCompletedChange, onDelete }) => {
+  console.log('TodoListItem is rendered', todo.id)
   const { text, completed, color } = todo
 
   const handleCompletedChanged = (e) => {
