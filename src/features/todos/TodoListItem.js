@@ -1,19 +1,25 @@
 import React from 'react'
 
+import { useDispatch, useSelector } from 'react-redux'
+
 import { ReactComponent as TimesSolid } from './times-solid.svg'
 
 import { availableColors, capitalize } from '../filters/colors'
 
-const TodoListItem = ({ todo, onColorChange, onCompletedChange, onDelete }) => {
-  console.log('TodoListItem is rendered', todo.id)
+
+const TodoListItem = ({ todoId, onDelete }) => {
+  console.log('TodoListItem is rendered', todoId)
+  const selectTodo = state => state.todos.find(todo => todo.id === todoId)
+  const todo = useSelector(selectTodo)
+  const dispatch = useDispatch()
   const { text, completed, color } = todo
 
   const handleCompletedChanged = (e) => {
-    onCompletedChange(e.target.checked)
+    dispatch({ type: 'todos/todoToggled', payload: todoId })
   }
 
   const handleColorChanged = (e) => {
-    onColorChange(e.target.value)
+    dispatch({type: 'todos/colorSelected', payload: {color: e.target.value, todoId}})
   }
 
   const colorOptions = availableColors.map((c) => (

@@ -1,20 +1,15 @@
 import React from 'react'
-import {useSelector, useDispatch} from 'react-redux'
+import {useSelector, shallowEqual} from 'react-redux'
 import TodoListItem from './TodoListItem'
 
-const selectTodos = state => state.todos
+const selectTodoIds = state => state.todos.map(todo => todo.id)
 
 const TodoList = () => {
   console.log('TodoList is rendered')
-  const todos = useSelector(selectTodos)
-  const dispatch = useDispatch()
+  const todoIds = useSelector(selectTodoIds, shallowEqual)
 
-
-  const renderedListItems = todos.map((todo) => {
-    const updateTodoColor = (color) => {
-      dispatch({type: 'todos/colorSelected', payload: {color, todoId: todo.id}})
-    }
-    return <TodoListItem key={todo.id} todo={todo} onColorChange={updateTodoColor}/>
+  const renderedListItems = todoIds.map((todoId) => {
+    return <TodoListItem key={todoId} todoId={todoId} />
   })
 
   return <ul className="todo-list">{renderedListItems}</ul>
