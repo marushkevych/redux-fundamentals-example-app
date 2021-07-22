@@ -1,4 +1,8 @@
+import {createSelector} from 'reselect'
+import {StatusFilters} from '../filters/filtersSlice'
+
 import { client } from '../../api/client'
+import { includes, isEmpty } from 'ramda';
 
 const initialState = []
 
@@ -85,3 +89,35 @@ export function saveNewTodo(text) {
     dispatch(todoAdded(response.todo))
   }
 }
+
+export const selectTodos = state => state.todos
+
+export const selectTodoById = (state, todoId) => {
+  return selectTodos(state).find(todo => todo.id === todoId)
+}
+
+const filterPredicate = (status, colors) => todo => {
+  const matchesStatus = status === StatusFilters.All ? true :
+                        status === StatusFilters.Active ? !todo.completed : todo.completed
+
+  const matchesColor = isEmpty(colors) || includes(todo.color, colors)
+
+  return matchesStatus && matchesColor;
+}
+
+export const selectFilteredTodos = createSelector(
+    // First input selector: all todos
+    selectTodos,
+    // Second input selector: all filter values
+    state => state.filters,
+    // Output selector: receives both values
+    (todos, filters) => {
+      const { status, colors } = filters
+      return todos.filter(filterPredicate(status, colors))
+    }
+)
+
+export const selectUncompletedTodos = createSelector(
+    selectTodos,
+    todos => todos.filter(todo => !todo.completed)
+)
