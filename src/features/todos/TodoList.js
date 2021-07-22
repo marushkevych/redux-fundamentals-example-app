@@ -21,6 +21,8 @@ const selectTodoIds = state => {
 
 const TodoList = () => {
   console.log('TodoList is rendered')
+  // To avoid rerender - use shallowEqual to compare the contents of the array, instead of the array object identity.
+  // (since selectTodoIds will return new array each time)
   const todoIds = useSelector(selectTodoIds, shallowEqual)
 
   const renderedListItems = todoIds.map((todoId) => {
