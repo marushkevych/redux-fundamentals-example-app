@@ -1,4 +1,4 @@
-import {createSelector} from 'reselect'
+import {createSelector, createSlice} from '@reduxjs/toolkit'
 import {StatusFilters} from '../filters/filtersSlice'
 
 import { client } from '../../api/client'
@@ -14,116 +14,72 @@ const initialState = {
   entities: {}
 }
 
-export default function todosReducer(state = initialState, action) {
-  switch (action.type) {
-    case 'todos/todosLoading': {
-      return {
-        ...state,
-        status: LoadingStatuses.loading
-      }
-    }
-    case 'todos/todoAdded': {
+const todosSlice = createSlice({
+  name: 'todos',
+  initialState,
+  reducers: {
+    todoAdded(state, action) {
       const todo = action.payload
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todo.id]: todo
-        }
-      }
-    }
-    case 'todos/todoToggled': {
+      state.entities[todo.id] = todo
+    },
+    todoToggled(state, action) {
       const todoId = action.payload
       const todo = state.entities[todoId]
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todoId]: {
-            ...todo,
-            completed: !todo.completed
-          }
+      todo.completed = !todo.completed
+    },
+    colorSelected: {
+      reducer(state, action) {
+        const { color, todoId } = action.payload
+        state.entities[todoId].color = color
+      },
+      prepare(todoId, color) {
+        return {
+          payload: { todoId, color },
         }
-      }
-    }
-    case 'todos/colorSelected': {
-      const { color, todoId } = action.payload
-      const todo = state.entities[todoId]
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todoId]: {
-            ...todo,
-            color
-          }
-        }
-      }
-    }
-    case 'todos/todoDeleted': {
-      const newEntities = { ...state.entities }
-      delete newEntities[action.payload]
-      return {
-        ...state,
-        entities: newEntities
-      }
-    }
-    case 'todos/allCompleted': {
-      const newEntities = { ...state.entities }
-      Object.values(newEntities).forEach(todo => {
-        newEntities[todo.id] = {
-          ...todo,
-          completed: true
-        }
+      },
+    },
+    todoDeleted(state, action) {
+      delete state.entities[action.payload]
+    },
+    allCompleted(state, action) {
+      Object.values(state.entities).forEach((todo) => {
+        todo.completed = true
       })
-      return {
-        ...state,
-        entities: newEntities
-      }
-    }
-    case 'todos/completedCleared': {
-      const newEntities = { ...state.entities }
-      Object.values(newEntities).forEach(todo => {
+    },
+    completedCleared(state, action) {
+      Object.values(state.entities).forEach((todo) => {
         if (todo.completed) {
-          delete newEntities[todo.id]
+          delete state.entities[todo.id]
         }
       })
-      return {
-        ...state,
-        entities: newEntities
-      }
-    }
-    case 'todos/todosLoaded': {
+    },
+    todosLoading(state, action) {
+      state.status = 'loading'
+    },
+    todosLoaded(state, action) {
       const newEntities = {}
-      action.payload.forEach(todo => {
+      action.payload.forEach((todo) => {
         newEntities[todo.id] = todo
       })
-      return {
-        ...state,
-        status: 'idle',
-        entities: newEntities
-      }
-    }
-    default:
-      return state
-  }
-}
+      state.entities = newEntities
+      state.status = 'idle'
+    },
+  },
+})
 
-export const todosLoaded = todos => {
-  return {
-    type: 'todos/todosLoaded',
-    payload: todos
-  }
-}
+export const {
+  allCompleted,
+  completedCleared,
+  todoAdded,
+  colorSelected,
+  todoDeleted,
+  todoToggled,
+  todosLoaded,
+  todosLoading,
+} = todosSlice.actions
 
-export const todoAdded = todo => {
-  return {
-    type: 'todos/todoAdded',
-    payload: todo
-  }
-}
+export default todosSlice.reducer
 
-export const todosLoading = () => ({type: 'todos/todosLoading'})
 
 // Thunk function
 export function fetchTodos() {

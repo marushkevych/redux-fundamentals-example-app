@@ -2,7 +2,7 @@ import React from 'react'
 import {useSelector, shallowEqual} from 'react-redux'
 import TodoListItem from './TodoListItem'
 import {selectFilteredTodos, selectLoadingStatus, LoadingStatuses} from './todosSlice'
-import {createSelector} from 'reselect'
+import {createSelector} from '@reduxjs/toolkit'
 
 
 const selectTodoIds = createSelector(

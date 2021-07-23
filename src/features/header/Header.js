@@ -25,7 +25,6 @@ const Header = () => {
   }
 
   let isLoading = status === 'loading'
-  let placeholder = isLoading ? '' : 'What needs to be done?'
   let loader = isLoading ? <div className="loader" /> : null
 
   return (
