@@ -77,16 +77,9 @@ export function saveNewTodo(text) {
   }
 }
 
-const selectTodoEntities = state => state.todos.entities
+// SELECTORS
 
-export const selectTodos = createSelector(
-    selectTodoEntities,
-    entities => Object.values(entities)
-)
-
-export const selectTodoById = (state, todoId) => {
-  return selectTodoEntities(state)[todoId]
-}
+export const { selectAll: selectTodos, selectById: selectTodoById } = todosAdapter.getSelectors(state => state.todos)
 
 export const selectLoadingStatus = state => state.todos.status
 
