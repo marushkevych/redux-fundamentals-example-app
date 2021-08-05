@@ -1,68 +1,44 @@
-import {createSelector, createSlice} from '@reduxjs/toolkit'
+import {createSelector, createSlice, createEntityAdapter} from '@reduxjs/toolkit'
 import {StatusFilters} from '../filters/filtersSlice'
 
 import { client } from '../../api/client'
-import { includes, isEmpty } from 'ramda';
+import { includes, isEmpty, prop } from 'ramda';
 
 export const LoadingStatuses = {
   idle: 'idle',
   loading: 'loading'
 }
 
-const initialState = {
-  status: LoadingStatuses.idle,
-  entities: {}
-}
+const todosAdapter = createEntityAdapter()
+
+const initialState = todosAdapter.getInitialState({
+  status: LoadingStatuses.idle
+})
 
 const todosSlice = createSlice({
   name: 'todos',
   initialState,
   reducers: {
-    todoAdded(state, action) {
-      const todo = action.payload
-      state.entities[todo.id] = todo
-    },
-    todoToggled(state, action) {
-      const todoId = action.payload
-      const todo = state.entities[todoId]
-      todo.completed = !todo.completed
-    },
-    colorSelected: {
-      reducer(state, action) {
-        const { color, todoId } = action.payload
-        state.entities[todoId].color = color
-      },
-      prepare(todoId, color) {
-        return {
-          payload: { todoId, color },
-        }
-      },
-    },
-    todoDeleted(state, action) {
-      delete state.entities[action.payload]
-    },
+    todoAdded: todosAdapter.addOne,
+    todoUpdated: todosAdapter.updateOne,
+    todoDeleted: todosAdapter.removeOne,
     allCompleted(state, action) {
       Object.values(state.entities).forEach((todo) => {
         todo.completed = true
       })
     },
     completedCleared(state, action) {
-      Object.values(state.entities).forEach((todo) => {
-        if (todo.completed) {
-          delete state.entities[todo.id]
-        }
-      })
+      const completedIds = Object.values(state.entities)
+          .filter(prop('completed'))
+          .map(prop('id'))
+      todosAdapter.removeMany(state, completedIds)
     },
     todosLoading(state, action) {
       state.status = 'loading'
     },
     todosLoaded(state, action) {
-      const newEntities = {}
-      action.payload.forEach((todo) => {
-        newEntities[todo.id] = todo
-      })
-      state.entities = newEntities
       state.status = 'idle'
+      todosAdapter.addMany(state, action)
     },
   },
 })
@@ -73,7 +49,7 @@ export const {
   todoAdded,
   colorSelected,
   todoDeleted,
-  todoToggled,
+  todoUpdated,
   todosLoaded,
   todosLoading,
 } = todosSlice.actions
